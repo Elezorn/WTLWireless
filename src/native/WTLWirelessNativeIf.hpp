@@ -142,11 +142,13 @@ private:
     bool tahoeEvents = mtkabi::kTahoeOnlyEventsDefault;   // post 0x27 / 0xaf (boot-arg mtknativelqm overrides)
     bool useCandidate = mtkabi::kTahoeOnlyEventsDefault;  // join the BSSID macOS picked (boot-arg mtknativecand overrides)
     bool wclReadyEnabled = mtkabi::kWclReadyDefault;     // see MtkAbiCompat.h (boot-arg mtkwclready overrides)
-    bool wclReadyPending = false;                         // post 0x37 + 0x31 from the next control poll
+    // post 0x37 + 0x31 from the next control poll. Set from setPOWER (controller, command gate) and taken in pollControl
+    // (work queue timer): only through the __atomic builtins below.
+    bool wclReadyPending = false;
     uint32_t wclReadyPosts = 0;
     void postWclReady();
 public:
-    void requestWclReady() { if (wclReadyEnabled) wclReadyPending = true; }   // controller: power on
+    void requestWclReady() { if (wclReadyEnabled) __atomic_store_n(&wclReadyPending, true, __ATOMIC_RELEASE); }   // controller: power on
 private:
     int32_t lqReported = -3;               // last ifnet link quality given to setLQM; -3 = never
     void reportLinkQuality(int32_t lq);

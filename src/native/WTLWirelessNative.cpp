@@ -42,7 +42,9 @@ bool commandAllowed(int cmd) {
     case 0x37: case 0x39: case 0xc3:                        // GUARD_INTERVAL, MCS, MCS_VHT (native #1: what Wi-Fi details show)
         return true;
 #if defined(MTK_ABI_SEQUOIA)
-    case 0x167:                                             // HW_ADDR: WCLConfigManager::loadHwMacAddr after the 0x31 event
+    // HW_ADDR: WCLConfigManager::loadHwMacAddr after the 0x31 event. The 0x37 above is the GUARD_INTERVAL ioctl, not the
+    // 0x37 driver-available event that postWclReady posts (events and ioctls are separate number spaces).
+    case 0x167:
         return true;
 #endif
     default:

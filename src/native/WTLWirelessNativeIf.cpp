@@ -65,7 +65,7 @@ bool WTLWirelessNativeIf::init() {
     if (PE_parse_boot_argn("mtknativelqm", &v, sizeof(v))) tahoeEvents = v != 0;
     v = wclReadyEnabled;
     if (PE_parse_boot_argn("mtkwclready", &v, sizeof(v))) wclReadyEnabled = v != 0;
-    wclReadyPending = wclReadyEnabled;   // once after start, from the first control poll with the data path up
+    __atomic_store_n(&wclReadyPending, wclReadyEnabled, __ATOMIC_RELEASE);   // once after start, from the first control poll with the data path up
     v = useCandidate;
     if (PE_parse_boot_argn("mtknativecand", &v, sizeof(v))) useCandidate = v != 0;
     return lock != nullptr && bssSnap != nullptr && beaconMsg != nullptr;
@@ -606,7 +606,8 @@ void WTLWirelessNativeIf::pollControl() {
     speed = radioSpeed;
     if (dirty && up) txSpace = true;     // frames refused while the link was down are asked for again
     IOLockUnlock(lock);
-    if (wclReadyPending && dpEnabled) postWclReady();
+    // take the request only once the data path is up; a request made while it is down waits for the next poll
+    if (dpEnabled && __atomic_exchange_n(&wclReadyPending, false, __ATOMIC_ACQ_REL)) postWclReady();
     if (dirty && ctl) {
         ctl->setLinkStatus(kIONetworkLinkValid | (up ? kIONetworkLinkActive : 0), up ? ctl->getSelectedMedium() : nullptr, up ? speed : 0);
 #if defined(MTK_ABI_SEQUOIA)

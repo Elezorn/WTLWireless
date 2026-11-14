@@ -15,8 +15,9 @@
     `setWCL_JOIN_ABORT(void*)`, a four-argument `setLinkState`, the 0x40-byte beacon header with the flags at +0x3c, and the
     0x1e0-byte extended BSS info with the RSN element at +0xdd.
   - The 0x27 LQM / 0xaf beacon-counter events and the candidate BSSID offsets were read on 25G241 only and stay off on
-    Sequoia (`mtknativelqm=1`, `mtknativecand=1` turn them on); `MtkNativeAbiGeneration` says tahoe or sequoia.
-- `MtkNativeAbi` entries may match a `Kernel` substring in place of an `Xnu` tag (for a dump without one; 24H32 uses its xnu tag).
+    Sequoia (`mtknativelqm=1`, `mtknativecand=1` turn them on); `MtkNativeAbiGeneration` says tahoe or sequoia. The three
+    boot-args are in the README.
+  - `tools/abi-plist.py` writes the allow-list from `abi/24H32/abi.json` at build time and stops if the entry has no xnu tag.
 - Joins without a private address work on Sequoia (Recovery, Private Wi-Fi Address off). WCL asks for the hardware MAC
   (GET 0x167, `WCLConfigManager::loadHwMacAddr`) only on its "firmware loaded" notification, which comes from the driver's
   events 0x37 (driver available, 0xf8 bytes) and 0x31 (interfaces reset complete, u32 1), as AppleBCMWLANCore posts them
@@ -27,7 +28,7 @@
 - Booted on a Dell Latitude 5421 (MT7925), macOS 15.8.1 (24H32): Wi-Fi menu, scans, WPA2 joins with and without a private
   address, and joins plus internet in macOS Recovery. The earlier MtkWlanNative 0.4.16 port of the same changes ran 6 minutes
   at 5g52/80 with no leaves or link drops without the 0x27 / 0xaf events, 812k frames in and 259k out with none dropped,
-  `LinkQuality : 100`. Other Sequoia builds (15.0 to 15.7) have no dump here and are not in the allow-list.
+  `LinkQuality : 100`. Other Sequoia builds are not in the allow-list: there is no dump of them here.
 
 ## 0.15.0 (2026-11-12)
 

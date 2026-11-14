@@ -787,8 +787,7 @@ void WTLWirelessNativeIf::serviceJoin() {
 // CAN_SEND), then 0x31 interfaces reset complete (u32 1; resetInterfaceHandler -> SSM_EVENT_FW_LOADED -> the 0x1a0003
 // "firmware loaded" notification). WCLConfigManager then loads the card capabilities, the hardware MAC (GET 0x167) and the
 // channel info, and sets the country code it has.
-void WTLWirelessNativeIf::postWclReady() {
-    wclReadyPending = false;
+void WTLWirelessNativeIf::postWclReady() {   // pollControl has already cleared wclReadyPending
     uint8_t avail[0xf8];
     bzero(avail, sizeof(avail));
     store<uint32_t>(avail, 0x00, 3);

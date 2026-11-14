@@ -12,13 +12,10 @@ import sys
 
 def entry(path):
     a = json.load(open(path))
-    e = {'Build': a['build'], 'Sizes': {k: int(v) for k, v in sorted(a['sizes'].items())}}
-    if a.get('xnu') and a['xnu'] != '?':
-        e['Xnu'] = a['xnu']
-    else:
-        # no xnu tag in the dump: match the kernel string (e.g. "Darwin Kernel Version 24.6.0"); the class sizes still gate it
-        e['Kernel'] = a['kernel_version']
-    return e
+    if not a.get('xnu', '').startswith('xnu-'):
+        # a short kernel string such as "Darwin Kernel Version 24.6.0" would let every 24.6.x kernel through
+        sys.exit('FAIL: %s has no xnu tag; put the full `uname -v` of that build into the dump\'s kernel_version' % path)
+    return {'Build': a['build'], 'Xnu': a['xnu'], 'Sizes': {k: int(v) for k, v in sorted(a['sizes'].items())}}
 
 
 def main(argv):
@@ -33,7 +30,7 @@ def main(argv):
             pers['MtkNativeAbi']['Builds'] = builds
     with open(plist, 'wb') as f:
         plistlib.dump(p, f)
-    print('MtkNativeAbi: %s' % ', '.join('%s (%s)' % (b['Build'], b.get('Xnu') or b.get('Kernel')) for b in builds))
+    print('MtkNativeAbi: %s' % ', '.join('%s (%s)' % (b['Build'], b['Xnu']) for b in builds))
 
 
 if __name__ == '__main__':
